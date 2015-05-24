@@ -1,5 +1,5 @@
 Dependencies for Project 'stm32_gpio', Target 'SEDS_DAS': (DO NOT MODIFY !)
-F (..\main.c)(0x5561D36C)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork -I..\ -I..\..\Libraries\STM32F10x_StdPeriph_Driver\inc -I..\..\Libraries\CMSIS\CM3\CoreSupport -I..\..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x-I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\ST\STM32F10x-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o .\obj\main.o --omf_browse .\obj\main.crf --depend .\obj\main.d)
+F (..\main.c)(0x55624FAB)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork -I..\ -I..\..\Libraries\STM32F10x_StdPeriph_Driver\inc -I..\..\Libraries\CMSIS\CM3\CoreSupport -I..\..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x-I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\ST\STM32F10x-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o .\obj\main.o --omf_browse .\obj\main.crf --depend .\obj\main.d)
 I (C:\Keil\ARM\RV31\INC\math.h)(0x4D020B3C)
 I (..\main.h)(0x51EF6750)
 I (..\..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\stm32f10x.h)(0x4DFE69AC)

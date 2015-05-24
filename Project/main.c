@@ -9,6 +9,7 @@
 #define MainDeployHight 3000
 #define kV 0.5   //speed integration tuning coeff
 #define kD 0.3	//distance integration tuning coeff
+#define oss 1   //over sampling_ seeting 0 ultra low-p 1 std 2 hres 3uhres
 //volatile uint16_t ADC_values[ARRAYSIZE];
 
 __IO uint16_t IC2Value = 0;
@@ -19,6 +20,7 @@ __IO uint16_t DutyCycle1 = 0;
 __IO uint32_t Frequency1 = 0;
 __IO uint32_t RT_Count=0;
 __IO uint32_t SPIRXbuf;
+__IO uint8_t CaliData[22];
 
 __IO uint32_t deltaP;
 __IO uint32_t lastP;
@@ -31,6 +33,19 @@ __IO uint32_t AltP;
 __IO uint32_t AltA;
 __IO int32_t speed;
 __IO uint32_t accl;
+
+//calibration data with initial values
+short	B1=6190;
+short	B2=4;
+short	AC1=408;
+short	AC2=-72;
+short	AC3=-14383;
+unsigned short AC4=32741;
+unsigned short AC5=32757;
+unsigned short AC6=23153;
+short MC=-8711;
+short MD=2868;
+	
 bool iGotNewToys=0;
 
 
@@ -53,14 +68,14 @@ void initSD(void);
 void initI(void);
 
 //sensor actions
-uint32_t getP(void);
+uint16_t getP(void);
 uint32_t getTmp(void);
 void getT(void);
 void getIData(void);
 void logSD(void);
 void sendData(void);//rf send
 
-int32_t calcAlt(uint32_t,uint32_t);
+int32_t calcAlt(uint16_t,uint32_t);
 void deploy(uint8_t);//main action function
 uint8_t analyze(void);//main computation function
 
@@ -463,6 +478,28 @@ void deploy(uint8_t action)
 }
 void initP()
 {
+	uint8_t i;
+	PS_CS=0;
+	SPIsend(0x2a);//point at 0xAA
+	for(i=0;i<21;i++)
+	{
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	CaliData[i]=SPIRXbuf;
+	}
+	PS_CS=1;
+	
+	AC1=(CaliData[0]<<8)+CaliData[1];
+	AC2=(CaliData[2]<<8)+CaliData[3];
+	AC3=(CaliData[4]<<8)+CaliData[5];
+	AC4=(CaliData[6]<<8)+CaliData[7];
+	AC5=(CaliData[8]<<8)+CaliData[9];
+	AC6=(CaliData[10]<<8)+CaliData[11];
+	B1=(CaliData[12]<<8)+CaliData[13];
+	B2=(CaliData[14]<<8)+CaliData[15];
+	MC=(CaliData[18]<<8)+CaliData[19];
+	MD=(CaliData[20]<<8)+CaliData[21];
+	
 }
 void initT()
 {
@@ -472,15 +509,59 @@ void initSD()
 }
 void initI()
 {
+	
 }
-uint32_t getP(void)// pressure sensor is on SPI
+uint16_t getP(void)// pressure sensor is on SPI
 {
-	uint32_t results;
+	uint16_t results;
+	uint8_t LR,HR;
+	
+	PS_CS=0;
+	SPIsend(0x74);
+	SPIsend(0x2e);
+	PS_CS=1;
+	
+	Delay(80);//wait 4.5ms
+	
+	PS_CS=0;
+	SPIsend(0xf6);
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	HR=SPIRXbuf;
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	LR=SPIRXbuf;
+	PS_CS=1;
+	
+	results=(HR<<8)+LR;
 	return results;
 }
 uint32_t getTmp(void)// pressure sensor is on SPI
 {
 	uint32_t results;
+	uint8_t XLR,LR,HR;
+	
+	PS_CS=0;
+	SPIsend(0x74);
+	SPIsend(0x34<<(oss+6));
+	PS_CS=1;
+	
+	Delay(80);//wait 4.5ms
+	
+	PS_CS=0;
+	SPIsend(0xf6);
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	HR=SPIRXbuf;
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	LR=SPIRXbuf;
+	while(!iGotNewToys);
+	iGotNewToys=0;
+	XLR=SPIRXbuf;
+	PS_CS=1;
+	
+	results=((HR<<16)+(LR<<8)+XLR)>>(8-oss);
 	return results;
 }
 void getT(void)// RTC is on SPI
@@ -495,8 +576,33 @@ void logSD(void)
 void sendData(void)
 {
 }
-int32_t calcAlt(uint32_t UP,uint32_t UT)
+int32_t calcAlt(uint16_t UP,uint32_t UT)
 {
+	long X1,X2,X3,B5,Temprature,B3,B6,B7,p;
+	unsigned long B4;
+	X1=(UT*AC6)*AC5/2^15;
+	X2=MC*2^11/(X1+MD);
+	B5=X1+X2;
+	Temprature=(B5+8)/2^4;
+	
+	B6=B5*4000;
+	X1=(B2*(B6*B6/2^12))/2^11;
+	X2=AC2*B6/2^11;
+	X3=X1+X2;
+	B3=(((AC1*4+X3)<<oss) +2)/4;
+	X1=AC3*B6/2^13;
+	X2=(B1*(B6*B6/2^12))/2^16;
+	X3=((X1+X2)+2)/2^2;
+	B4=AC4*(unsigned long)(X3+32768)/2^15;
+	B7=((unsigned long)UP-B3)*(50000>>oss);
+	if(B7<0x80000000)
+		p=(B7*2)/B4;
+	else
+		p=(B7/B4)*2;
+	X1=(p/2^8)*(p/2^8);
+	X1=(X1*3038)/2^16;
+	X2=(-7357*p)/2^16;
+	p=p+(X1+X2+3791)/2^4;
 	int32_t results;
 	return results;
 }
