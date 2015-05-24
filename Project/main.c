@@ -6,8 +6,9 @@
 #define ARRAYSIZE 8
 #define ADC1_DR    ((uint32_t)0x4001244C)
 #define AltK 1000
-#define kV 100
-#define kD 100
+#define MainDeployHight 3000
+#define kV 0.5   //speed integration tuning coeff
+#define kD 0.3	//distance integration tuning coeff
 //volatile uint16_t ADC_values[ARRAYSIZE];
 
 __IO uint16_t IC2Value = 0;
@@ -28,7 +29,7 @@ __IO uint32_t lastA;
 __IO uint32_t nowA;
 __IO uint32_t AltP;
 __IO uint32_t AltA;
-__IO uint32_t speed;
+__IO int32_t speed;
 __IO uint32_t accl;
 bool iGotNewToys=0;
 
@@ -59,7 +60,7 @@ void getIData(void);
 void logSD(void);
 void sendData(void);//rf send
 
-uint32_t calcAlt(uint32_t,uint32_t);
+int32_t calcAlt(uint32_t,uint32_t);
 void deploy(uint8_t);//main action function
 uint8_t analyze(void);//main computation function
 
@@ -137,7 +138,7 @@ int main(void)
 		getIData();
 		deltaP=lastP-nowP;
 		deltaA=lastA-nowA;
-		calcAlt(getP(),getTmp());// in ft
+		AltP=calcAlt(getP(),getTmp());// in ft
 		logSD();
 		speed=speed+(accl*RT_Count*kV); //riemann approx
 		AltA=AltA+(speed*RT_Count*kD);		
@@ -443,7 +444,15 @@ void SysTick_Handler(void)
 
 uint8_t analyze(void)
 {
-	return 1;
+	int16_t deltaAlt=0;
+	
+	if(deltaAlt<0 && speed<0)
+		return 1;
+	else if(AltP<MainDeployHight)
+		return 2;
+	else
+		return 0;
+	
 }
 void deploy(uint8_t action)
 {
@@ -464,8 +473,15 @@ void initSD()
 void initI()
 {
 }
-void getP(void)// pressure sensor is on SPI
+uint32_t getP(void)// pressure sensor is on SPI
 {
+	uint32_t results;
+	return results;
+}
+uint32_t getTmp(void)// pressure sensor is on SPI
+{
+	uint32_t results;
+	return results;
 }
 void getT(void)// RTC is on SPI
 {
@@ -478,4 +494,9 @@ void logSD(void)
 }
 void sendData(void)
 {
+}
+int32_t calcAlt(uint32_t UP,uint32_t UT)
+{
+	int32_t results;
+	return results;
 }
