@@ -28,4 +28,4 @@
 .\obj\usart.o: C:\Keil\ARM\Inc\ST\STM32F10x\stm32f10x_tim.h
 .\obj\usart.o: C:\Keil\ARM\Inc\ST\STM32F10x\stm32f10x_usart.h
 .\obj\usart.o: C:\Keil\ARM\Inc\ST\STM32F10x\stm32f10x_wwdg.h
-.\obj\usart.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\obj\usart.o: C:\Keil\ARM\ARMCC\bin\..\include\stdio.h
