@@ -11,7 +11,7 @@
 #define kD 0.3	//distance integration tuning coeff
 #define oss 1   //over sampling_ seeting 0 ultra low-p 1 std 2 hres 3uhres
 //volatile uint16_t ADC_values[ARRAYSIZE];
-
+//hi kris is here
 __IO uint16_t IC2Value = 0;
 __IO uint16_t DutyCycle = 0;
 __IO uint32_t Frequency = 0;
