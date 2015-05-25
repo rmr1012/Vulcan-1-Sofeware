@@ -33,6 +33,7 @@ __IO uint32_t AltP;
 __IO uint32_t AltA;
 __IO int32_t speed;
 __IO uint32_t accl;
+long Temprature;
 
 //calibration data with initial values
 short	B1=6190;
@@ -159,6 +160,7 @@ int main(void)
 		AltA=AltA+(speed*RT_Count*kD);		
 		sendData();//send RF
 		deploy(analyze());//1 will pop drogue chute, 2 will pop main, 0 will do nothing
+		printf("pressure is %d, Temprature is%d\n",AltP,Temprature);
 	}
 }
 
@@ -578,7 +580,8 @@ void sendData(void)
 }
 int32_t calcAlt(uint16_t UP,uint32_t UT)
 {
-	long X1,X2,X3,B5,Temprature,B3,B6,B7,p;
+	long X1,X2,X3,B5,B3,B6,B7,p;
+	int32_t results;
 	unsigned long B4;
 	X1=(UT*AC6)*AC5/2^15;
 	X2=MC*2^11/(X1+MD);
@@ -603,6 +606,5 @@ int32_t calcAlt(uint16_t UP,uint32_t UT)
 	X1=(X1*3038)/2^16;
 	X2=(-7357*p)/2^16;
 	p=p+(X1+X2+3791)/2^4;
-	int32_t results;
 	return results;
 }
